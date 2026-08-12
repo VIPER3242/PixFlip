@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.zip
+*.xpi
+
+# Vendored OCR engine — large binaries, fetch via setup script instead
+# of committing to the repo (see README "OCR Setup").
+src/tesseract/*.wasm.js
+src/tesseract/*.min.js
+src/tesseract/*.traineddata.gz

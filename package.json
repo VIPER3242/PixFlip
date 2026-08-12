@@ -1,0 +1,14 @@
+{
+  "name": "inplace-transformer",
+  "version": "0.1.0",
+  "description": "Rotate, flip, zoom, and extract text from web images in-place.",
+  "private": true,
+  "scripts": {
+    "dev:firefox": "web-ext run --source-dir=. --target=firefox-desktop",
+    "build": "web-ext build --source-dir=. --overwrite-dest --artifacts-dir=dist",
+    "lint": "web-ext lint --source-dir=."
+  },
+  "devDependencies": {
+    "web-ext": "^8.2.0"
+  }
+}
