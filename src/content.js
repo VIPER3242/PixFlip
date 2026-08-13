@@ -34,15 +34,61 @@ function getState(img) {
   return stateMap.get(img);
 }
 
-function loadOriginalBitmap(img) {
+// Asks the background service worker to fetch a URL and hand back a data
+// URL. The background context isn't subject to the page's CORS policy the
+// way this content script is, so this is what actually makes rotate/flip
+// work on sites (like Wikipedia) whose images weren't loaded with
+// crossorigin set in the first place. See background.js for the full
+// rationale.
+function fetchImageAsDataUrl(url) {
   return new Promise((resolve, reject) => {
-    const state = getState(img);
-    const source = new Image();
-    source.crossOrigin = "anonymous"; // best-effort; may fail on strict CORS
-    source.onload = () => resolve(source);
-    source.onerror = () => reject(new Error("image-load-failed"));
-    source.src = state.originalSrc;
+    chrome.runtime.sendMessage(
+      { type: "pixflip:fetch-image", url },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        if (response?.ok) {
+          resolve(response.dataUrl);
+        } else {
+          reject(new Error(response?.error || "fetch-failed"));
+        }
+      }
+    );
   });
+}
+
+function loadImageElement(src, useCrossOrigin = false) {
+  return new Promise((resolve, reject) => {
+    const el = new Image();
+    if (useCrossOrigin) el.crossOrigin = "anonymous";
+    el.onload = () => resolve(el);
+    el.onerror = () => reject(new Error("image-load-failed"));
+    el.src = src;
+  });
+}
+
+async function loadOriginalBitmap(img) {
+  const state = getState(img);
+  const url = state.originalSrc;
+
+  // Already a data URL (e.g. re-editing an image we've previously
+  // transformed) — nothing cross-origin about it, load directly.
+  if (url.startsWith("data:")) {
+    return loadImageElement(url);
+  }
+
+  // Primary path: background-fetched data URL. Bypasses page CORS entirely.
+  try {
+    const dataUrl = await fetchImageAsDataUrl(url);
+    return await loadImageElement(dataUrl);
+  } catch {
+    // Fallback: direct crossOrigin load, in case messaging failed for an
+    // unrelated reason (e.g. background worker was asleep and slow to spin
+    // up). Still works for plenty of sites even without the background hop.
+    return loadImageElement(url, true);
+  }
 }
 
 async function redraw(img) {
@@ -51,7 +97,7 @@ async function redraw(img) {
   try {
     bitmap = await loadOriginalBitmap(img);
   } catch {
-    showToast("Couldn't load image for editing.");
+    showToast("Couldn't load this image \u2014 it may be unreachable or blocked by the site.");
     return;
   }
 
@@ -96,7 +142,7 @@ async function redraw(img) {
 
 function showToast(message) {
   const toast = document.createElement("div");
-  toast.className = "inplace-transformer-toast";
+  toast.className = "pixflip-toast";
   toast.textContent = message;
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3500);
@@ -104,11 +150,11 @@ function showToast(message) {
 
 function openZoomModal(img) {
   const overlay = document.createElement("div");
-  overlay.className = "inplace-transformer-overlay";
+  overlay.className = "pixflip-overlay";
 
   const clone = document.createElement("img");
   clone.src = img.src;
-  clone.className = "inplace-transformer-zoomed";
+  clone.className = "pixflip-zoomed";
 
   overlay.appendChild(clone);
   overlay.addEventListener("click", () => overlay.remove());
@@ -168,12 +214,12 @@ async function handleCommand(command, img) {
       await runOcr(img, showToast);
       break;
     default:
-      console.debug("[InPlace Transformer] unknown command:", command);
+      console.debug("[PixFlip] unknown command:", command);
   }
 }
 
 chrome.runtime.onMessage.addListener((message) => {
-  if (message?.type !== "inplace-transformer:command") return;
+  if (message?.type !== "pixflip:command") return;
 
   // Prefer the exact element the user right-clicked. Fall back to matching
   // by src if for some reason we lost the reference (e.g. SPA re-render

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "InPlace Transformer",
+  "name": "PixFlip",
   "version": "0.1.0",
   "description": "Rotate, flip, zoom, and extract text from web images \u2014 in place, no downloads.",
   "icons": {
@@ -24,13 +24,13 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["src/tesseract/*", "icons/*"],
+      "resources": ["src/ocr.js", "src/tesseract/*", "icons/*"],
       "matches": ["<all_urls>"]
     }
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "inplace-transformer@example.com",
+      "id": "pixflip@example.com",
       "strict_min_version": "109.0"
     }
   }

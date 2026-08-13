@@ -3,8 +3,10 @@ dist/
 *.zip
 *.xpi
 
-# Vendored OCR engine — large binaries, fetch via setup script instead
-# of committing to the repo (see README "OCR Setup").
+# Vendored OCR engine — large binaries (~6MB), regenerate with:
+#   npm run vendor-ocr
+# rather than committing to the repo. See README "OCR Setup".
+src/tesseract/*.wasm
 src/tesseract/*.wasm.js
 src/tesseract/*.min.js
 src/tesseract/*.traineddata.gz

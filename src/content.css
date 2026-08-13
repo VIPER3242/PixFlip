@@ -1,4 +1,4 @@
-.inplace-transformer-toast {
+.pixflip-toast {
   position: fixed;
   bottom: 24px;
   left: 50%;
@@ -18,7 +18,7 @@
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-.inplace-transformer-overlay {
+.pixflip-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.85);
@@ -29,7 +29,7 @@
   cursor: zoom-out;
 }
 
-.inplace-transformer-zoomed {
+.pixflip-zoomed {
   max-width: 92vw;
   max-height: 92vh;
   object-fit: contain;

@@ -1,9 +1,10 @@
 {
-  "name": "inplace-transformer",
+  "name": "pixflip",
   "version": "0.1.0",
   "description": "Rotate, flip, zoom, and extract text from web images in-place.",
   "private": true,
   "scripts": {
+    "vendor-ocr": "bash scripts/vendor-ocr.sh",
     "dev:firefox": "web-ext run --source-dir=. --target=firefox-desktop",
     "build": "web-ext build --source-dir=. --overwrite-dest --artifacts-dir=dist",
     "lint": "web-ext lint --source-dir=."
